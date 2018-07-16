@@ -13,9 +13,14 @@ client.on('ready', () => {
 });
 
 client.on('message', msg => {
-  if (msg.content.startsWith(commandPrefix)) {
-    let reply = executeCommand(msg.content.substr(1, msg.content.length - 1));
-    msg.reply(reply);
+  try {
+    if (msg.content.startsWith(commandPrefix)) {
+      let reply = executeCommand(msg.content.substr(1, msg.content.length - 1));
+      msg.reply(reply);
+    }
+  }
+  catch(err) {
+    console.log(err);
   }
 });
 
@@ -41,6 +46,7 @@ function doRoll(expression) {
     if(current === null) {
       current = expressions[i].trim().match(/([^0-9]*[0-9]*)(.*)/);
     }
+
     let diceExp = current[1].trim();
     let diceExpWithSign = diceExp;
 
@@ -54,6 +60,46 @@ function doRoll(expression) {
 
     if(diceExp.startsWith('+') || diceExp.startsWith('-')) {
       diceExp = diceExp.substr(1, diceExp.length - 1).trim();
+    }
+
+    if(diceExp.startsWith('min(') || diceExp.trim().startsWith('max(')) {
+      // sub-expression
+      let first = expressions[i].indexOf('(') + 1;
+      let last = expressions[i].lastIndexOf(')');
+      let subExp = expressions[i].substr(first, last - first);
+
+      let subResult = doRoll(subExp);
+      let data = {
+        fixedNumber: false,
+        expression: subExp,
+        total: null,
+        value: [],
+        positive: positive
+      };
+      let totals = [];
+      for(let j = 0; j < subResult.length; j++) {
+        if(typeof subResult[j].value === 'number') {
+          data.value.push(subResult[j].value);
+          totals.push(subResult[j].total);
+        }
+        else if(Array.isArray(subResult[j].value)) {
+          subResult[j].value.forEach(element => {
+            data.value.push(element);
+            totals.push(element);
+          });
+        }
+      }
+      if(diceExp.trim().startsWith('min(')) {
+        data.total = Math.min.apply(Math, totals);
+        data.expression = 'min(' + data.expression + ')';
+      }
+      else {
+        data.total = Math.max.apply(Math, totals);
+        data.expression = 'max(' + data.expression + ')';
+      }
+
+      result.push(data);
+      continue;
     }
 
     let name = '';
@@ -93,6 +139,10 @@ function doRoll(expression) {
     }
     dieSizeString = dieSizeString.trim();
     if(dieSizeString.length === 0) {
+      throw `Invalid die size [${diceExp}]`;
+    }
+
+    if(isNaN(dieSizeString)) {
       throw `Invalid die size [${diceExp}]`;
     }
 
@@ -236,7 +286,12 @@ function getRandomWithMin(min, max) {
 }
 
 function executeExpression(expression) {
-  return resultArrayToString(doRoll(expression));
+  try {
+    return resultArrayToString(doRoll(expression));
+  }
+  catch(err) {
+    return "Error: " + err;
+  }
 }
 
 /*let results = [];
@@ -256,4 +311,7 @@ for(let i = 0; i < results.length; i++) {
 console.log(executeExpression('3d8 cold + 1d6 bludgeoning dmg+3d4 piercing-1 STR mod'));
 console.log(executeExpression('3d10-7+d4'));
 console.log(executeExpression('3d10 stuff name-7 some modifier+d4 guidance'));
+console.log(executeExpression('min(2d20)+7'));
+console.log(executeExpression('max(2d20)+7'));
+console.log(executeExpression('3d10 stuff name-7 some modifier+d4 guidance + max(2d20) advantage'));
 */
