@@ -27,8 +27,14 @@ client.on('message', msg => {
 client.login(token);
 
 function executeCommand(command) {
-  if(command.startsWith('roll')) {
+  if(command.startsWith('roll ')) {
     return executeExpression(command.substr(4, command.length - 4));
+  }
+  else if(command.startsWith('rollcode ')) {
+    return '`' + executeExpression(command.substr(8, command.length - 8)) + '`';
+  }
+  else {
+    return 'Unknown command: ' + command;
   }
 }
 
