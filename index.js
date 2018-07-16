@@ -32,16 +32,17 @@ function doRoll(expression) {
   let result = [];
 
   if(expression.length === 0) {
-    result.push(getResultObject(getRandom(20), true));
+    result.push(getResultObject("d20", getRandom(20), true));
     return result;
   }
   let expressions = expression.split(/(?=[+-])/);
   for(let i = 0; i < expressions.length; i++) {
-    let current = expressions[i].trim().match(/([^d]*d[^ ]*[ ])(.*)/);
+    let current = expressions[i].trim().match(/([^0-9]*[0-9]*d[0-9]+[ ]?)(.*)/);
     if(current === null) {
       current = expressions[i].trim().match(/([^0-9]*[0-9]*)(.*)/);
     }
     let diceExp = current[1].trim();
+    let diceExpWithSign = diceExp;
 
     let positive = true;
     if(diceExp.startsWith('+')) {
@@ -68,7 +69,7 @@ function doRoll(expression) {
       if(isNaN(diceExp)) {
         throw `Invalid modifier [${diceExp}]`;
       }
-      result.push(getResultObject(Number(diceExp), positive, name));
+      result.push(getResultObject(diceExpWithSign, Number(diceExp), positive, name, true));
       continue;
     }
 
@@ -106,16 +107,16 @@ function doRoll(expression) {
       for(let j = 0; j < diceNum; j++) {
         diceResults[j] = getRandom(dieSize);
       }
-      result.push(getResultObject(diceResults, positive, name));
+      result.push(getResultObject(diceExpWithSign, diceResults, positive, name));
     }
     else {
-      result.push(getResultObject(getRandom(dieSize), positive, name));
+      result.push(getResultObject(diceExpWithSign, getRandom(dieSize), positive, name));
     }
   }
   return result;
 }
 
-function getResultObject(value, positive, name) {
+function getResultObject(expression, value, positive, name, fixedNumber = false) {
   let total = 0;
   if(typeof value === 'number') {
     total = value;
@@ -131,12 +132,16 @@ function getResultObject(value, positive, name) {
 
   if(typeof name === 'undefined' || !name) {
     return {
+      fixedNumber: fixedNumber,
+      expression: expression,
       total: total,
       value: value,
       positive: positive
     };
   }
   return {
+    fixedNumber: fixedNumber,
+    expression: expression,
     total: total,
     name: name,
     value: value,
@@ -150,7 +155,7 @@ function resultArrayToString(results) {
     text = String(results[0].total);
     
     if(results[0].name) {
-      text += ' ' + results[0].name;
+      text += '    ' + results[0].name;
     }
 
     return text;
@@ -169,15 +174,37 @@ function resultArrayToString(results) {
       text += ', ';
     }
   }
-  text = String(total) + ': ' + text;
+  text = '_**' + String(total) + '**_: ' + text;
   return text;
 }
 
 function resultToString(result) {
-  let text = String(result.total);
+
+  let sign = '';
+  if(!result.positive) {
+    sign = '-';
+  }
+  else {
+    sign = '+';
+  }
+  let text = '**' + sign + String(result.total) + '**';
+
+  let prefix = '';
+  let fixedNumber = result.fixedNumber;
+  if(!fixedNumber) {
+    prefix = '_';
+  }
 
   if(!result.positive) {
-    text = '-' + text;
+    prefix = prefix + '-';
+  }
+
+  if(!fixedNumber) {
+    text = prefix + result.expression + '_  ' + text;
+  }
+
+  if(result.name) {
+    text += ' ' + result.name;
   }
 
   if(typeof result.value === 'number') {
@@ -188,17 +215,13 @@ function resultToString(result) {
     for(let i = 0; i < result.value.length; i++) {
       text += String(result.value[i]);
       if(i < result.value.length - 1) {
-        text += ', ';
+        text += ',  ';
       }
     }
     text += ')';
   }
   else {
     throw 'Invalid result object';
-  }
-
-  if(result.name) {
-    text += ' ' + result.name;
   }
 
   return text;
@@ -213,7 +236,7 @@ function getRandomWithMin(min, max) {
 }
 
 function executeExpression(expression) {
-  return expression + ': ' + resultArrayToString(doRoll(expression));
+  return resultArrayToString(doRoll(expression));
 }
 
 /*let results = [];
@@ -229,4 +252,8 @@ for(let i = 0; i < results.length; i++) {
   console.log(i + ": " + results[i]);
 }*/
 
-// console.log(executeExpression('3d8 cold + 1d6 bludgeoning dmg+3d4 piercing-1 STR mod'));
+/*
+console.log(executeExpression('3d8 cold + 1d6 bludgeoning dmg+3d4 piercing-1 STR mod'));
+console.log(executeExpression('3d10-7+d4'));
+console.log(executeExpression('3d10 stuff name-7 some modifier+d4 guidance'));
+*/
