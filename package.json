@@ -1,0 +1,15 @@
+{
+  "name": "d20-dicebot",
+  "version": "0.0.1",
+  "description": "Dice rolling bot",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Christina Lena Korosec <christina.korosec1@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^11.3.2",
+    "ini": "^1.3.5"
+  }
+}
