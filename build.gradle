@@ -1,0 +1,77 @@
+plugins {
+  id "com.moowork.node" version "1.2.0"
+}
+
+import org.apache.tools.ant.taskdefs.condition.Os
+
+def projectName = 'discord-d20-bot'
+
+node {
+
+  // Version of node to use.
+  version = '9.11.2'
+
+  // Version of npm to use.
+  npmVersion = '5.6.0'
+
+  // Base URL for fetching node distributions (change if you have a mirror).
+  distBaseUrl = 'https://nodejs.org/dist'
+
+  // If true, it will download node using above parameters.
+  // If false, it will try to use globally installed node.
+  download = true
+
+  // Set the work directory for unpacking node
+  workDir = file("${project.buildDir}/nodejs")
+
+  // Set the work directory for NPM
+  npmWorkDir = file("${project.buildDir}/npm")
+
+  // Set the work directory where node_modules should be located
+  nodeModulesDir = file("${project.projectDir}")
+}
+
+def isWindowsOs = Os.isFamily(Os.FAMILY_WINDOWS)
+
+task build(type: XzCompressionTask, dependsOn: 'packageDist') {
+  group = 'Packaging'
+  description = 'Build from sources and output to compressed artifact'
+
+  input = new File(project.buildDir, projectName + '.tar')
+  output = new File("${project.projectDir}/dist", projectName + '.tar.xz')
+}
+
+task packageDist(type: Tar, dependsOn: ['createPackageDir', 'createDir']) {
+  baseName = projectName
+  extension = 'tar'
+  destinationDir = project.buildDir
+
+  into(projectName) {
+    from "${project.buildDir}/${projectName}"
+  }
+
+  compression = Compression.NONE // No Compression.XZ implemented yet
+}
+
+task createPackageDir(type: Copy, dependsOn: 'npmInstall') {
+  from "${project.projectDir}/index.js"
+  from "${project.projectDir}/node_modules"
+  from "${project.projectDir}/package.json"
+  from "${project.projectDir}/package-lock.json"
+  from "${project.projectDir}/README.md"
+  from "${project.projectDir}/LICENSE"
+  from "${project.projectDir}/node_modules"
+  into "${project.buildDir}/${projectName}"
+}
+
+task createDir(dependsOn: 'clean') {
+    doFirst {
+        mkdir new File(project.projectDir, '/dist/')
+    }
+}
+
+task clean(type: Delete) {
+  delete "${project.projectDir}/dist", "${project.buildDir}/${projectName}"
+}
+
+npmInstall.dependsOn('clean')

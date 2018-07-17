@@ -73,3 +73,8 @@ typings/
 .serverless
 
 config.ini
+.gradle
+
+build
+buildSrc/build
+dist
