@@ -47,21 +47,27 @@ task packageDist(type: Tar, dependsOn: ['createPackageDir', 'createDir']) {
   destinationDir = project.buildDir
 
   into(projectName) {
-    from "${project.buildDir}/${projectName}"
+    from "${project.projectDir}/dist"
   }
 
   compression = Compression.NONE // No Compression.XZ implemented yet
 }
 
-task createPackageDir(type: Copy, dependsOn: 'npmInstall') {
-  from "${project.projectDir}/index.js"
-  from "${project.projectDir}/node_modules"
-  from "${project.projectDir}/package.json"
-  from "${project.projectDir}/package-lock.json"
+task createPackageDir(type: Copy, dependsOn: ['npmInstall', 'compileTypescript']) {
+  from("${project.projectDir}/node_modules") {
+    into "node_modules"
+  }
   from "${project.projectDir}/README.md"
   from "${project.projectDir}/LICENSE"
-  from "${project.projectDir}/node_modules"
-  into "${project.buildDir}/${projectName}"
+  into "${project.projectDir}/dist"
+}
+
+task compileTypescript(type: Exec, dependsOn: 'npmInstall') {
+  if(isWindowsOs) {
+		commandLine 'cmd', '/c', './node_modules/typescript/bin/tsc'
+	} else {
+		commandLine './node_modules/typescript/bin/tsc'
+	}
 }
 
 task createDir(dependsOn: 'clean') {
