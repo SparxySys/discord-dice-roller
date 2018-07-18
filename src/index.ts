@@ -43,11 +43,16 @@ function executeCommand(command): string {
 }
 
 function executeExpression(expression: string): string {
-  let parsed: Dice = parser.parse(expression);
-  let inputParsed = parsed.getChildrenString();
-  parsed.process(new DefaultRandomProvider());
-  let output = parsed.toResultString().trim().replace(/\s+/g, '    ');
-  return inputParsed + '\n' + output;
+  try {
+    let parsed: Dice = parser.parse(expression);
+    let inputParsed = parsed.getChildrenString();
+    parsed.process(new DefaultRandomProvider());
+    let output = parsed.toResultString().trim().replace(/\s+/g, '    ');
+    return inputParsed + '\n' + output;
+  }
+  catch(err) {
+    return 'Sorry, I failed to process your request due to an error.\n' + err;
+  }
 }
 
 /*let results = [];
