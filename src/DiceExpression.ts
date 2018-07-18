@@ -147,8 +147,11 @@ function parse(expression: string, type: FunctionType = FunctionType.ADD): DiceF
       if(matches[3] === 'min') {
         type = FunctionType.MIN;
       }
-      else {
+      else if(matches[3] === 'max') {
         type = FunctionType.MAX;
+      }
+      else {
+        throw `Invalid function [${matches[1]}]`;
       }
 
       let subExpression = matches[4].substr(1, matches[4].length - 2);
