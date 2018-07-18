@@ -67,3 +67,4 @@ console.log(executeExpression('3d10 stuff name-7 some modifier-d6 some debuff+d4
 console.log(executeExpression('3d10 stuff name-7 some modifier-d6 some debuff+d4 guidance + max(2d20 + 3d10) advantage'));
 console.log(executeExpression('3d10 stuff name-7 some modifier-d6 some debuff+d4 guidance'));
 console.log(executeExpression('d20 - min(2d20) + 15'));*/
+
