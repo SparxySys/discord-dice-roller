@@ -1,7 +1,9 @@
+import { Dice } from "./DiceExpression";
+import { DefaultRandomProvider } from "./random";
+
 const fs = require('fs');
 const ini = require('ini');
 const Discord = require('discord.js');
-const random = require('./random');
 const parser = require('./DiceExpression');
 
 var config = ini.parse(fs.readFileSync('./config.ini', 'utf-8'));
@@ -26,7 +28,7 @@ client.on('message', msg => {
   }
 });
 
-// client.login(token);
+client.login(token);
 
 function executeCommand(command): string {
   if(command.startsWith('roll ')) {
@@ -41,7 +43,11 @@ function executeCommand(command): string {
 }
 
 function executeExpression(expression: string): string {
-  return parser.parse(expression).getChildrenString();
+  let parsed: Dice = parser.parse(expression);
+  let inputParsed = parsed.getChildrenString();
+  parsed.process(new DefaultRandomProvider());
+  let output = parsed.toResultString().trim().replace(/\s+/g, '    ');
+  return inputParsed + '\n' + output;
 }
 
 /*let results = [];
@@ -57,14 +63,13 @@ for(let i = 0; i < results.length; i++) {
   console.log(i + ": " + results[i]);
 }*/
 
-/*console.log(executeExpression(''));
-console.log(executeExpression('3d8 cold + 1d6 bludgeoning dmg+3d4 piercing-1 STR mod'));
-console.log(executeExpression('3d10-7+d4'));
-console.log(executeExpression('3d10 stuff name-7 some modifier+d4 guidance'));
-console.log(executeExpression('min(2d20)+7'));
-console.log(executeExpression('max(2d20)+7'));
-console.log(executeExpression('3d10 stuff name-7 some modifier-d6 some debuff+d4 guidance + max(2d20) advantage'));
-console.log(executeExpression('3d10 stuff name-7 some modifier-d6 some debuff+d4 guidance + max(2d20 + 3d10) advantage'));
-console.log(executeExpression('3d10 stuff name-7 some modifier-d6 some debuff+d4 guidance'));
-console.log(executeExpression('d20 - min(2d20) + 15'));*/
-
+/*console.log(executeExpression('') + '\n');
+console.log(executeExpression('3d8 cold + 1d6 bludgeoning dmg+3d4 piercing-1 STR mod') + '\n');
+console.log(executeExpression('3d10-7+d4') + '\n');
+console.log(executeExpression('3d10 stuff name-7 some modifier+d4 guidance') + '\n');
+console.log(executeExpression('min(2d20)+7') + '\n');
+console.log(executeExpression('max(2d20)+7') + '\n');
+console.log(executeExpression('3d10 stuff name-7 some modifier-d6 some debuff+d4 guidance + max(2d20) advantage') + '\n');
+console.log(executeExpression('3d10 stuff name-7 some modifier-d6 some debuff+d4 guidance + max(2d20, 3d10) advantage') + '\n');
+console.log(executeExpression('3d10 stuff name-7 some modifier-d6 some debuff+d4 guidance') + '\n');
+console.log(executeExpression('d20 - min(2d20) + 15') + '\n');*/

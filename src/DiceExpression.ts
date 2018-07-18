@@ -1,5 +1,7 @@
+import { RandomProvider } from "./random";
+
 module.exports = {
-  parse: function(expression: string, type: FunctionType = FunctionType.ADD): DiceFunction {
+  parse: function(expression: string, type: FunctionType = FunctionType.ADD): Dice {
     return parse(expression, type);
   }
 }
@@ -12,17 +14,69 @@ enum FunctionType {
   MAX
 };
 
-class DiceFunction {
+export interface Dice {
+  toString(first: boolean): string;
+  getChildrenString(): string;
+  toResultString(): string;
+  process(random: RandomProvider);
+}
+
+class DiceFunction implements Dice {
   name: string;
   type: FunctionType;
   positive: boolean;
   private children: DiceFunction[] = [];
   parent: DiceFunction;
+  value: number;
 
   constructor(type: FunctionType, positive: boolean, name: string = null) {
     this.type = type;
     this.name = name;
     this.positive = positive;
+  }
+
+  processChildren(random: RandomProvider) {
+    this.children.forEach(element => {
+      element.process(random);
+    });
+  }
+
+  processTotal(numbers: number[], type: FunctionType) {
+    let val = 0;
+    if(type == FunctionType.ADD) {
+      for(let i = 0; i < numbers.length; i++) {
+        val += numbers[i];
+      }
+    }
+    else if(type == FunctionType.MIN) {
+      for(let i = 0; i < numbers.length; i++) {
+        if(i === 0) {
+          val = numbers[i];
+        }
+        val = Math.min(val, numbers[i]);
+      }
+    }
+    else if(type == FunctionType.MAX) {
+      for(let i = 0; i < numbers.length; i++) {
+        if(i === 0) {
+          val = numbers[i];
+        }
+        val = Math.max(val, numbers[i]);
+      }
+    }
+    return val;
+  }
+
+  process(random: RandomProvider) {
+    this.processChildren(random);
+    let numbers: number[] = [];
+    for(let i = 0; i < this.children.length; i++) {
+      numbers.push(this.children[i].value);
+    }
+    this.value = this.processTotal(numbers, this.type);
+    if(!this.positive) {
+      this.value = -this.value;
+    }
   }
 
   addChild(child: DiceFunction) {
@@ -78,11 +132,28 @@ class DiceFunction {
     text = text + this.getChildrenString() + ')' + this.getNameString();
     return text;
   }
+
+  toResultString(): string {
+    let includePositive = Boolean(this.parent);
+    let text = '**' + String(this.value) + '**';
+    text += ' (';
+    let first = true;
+    this.children.forEach(child => {
+      if(!first) {
+        text += ', ';
+      }
+      first = false;
+      text += child.toResultString();
+    });
+    text += ')' + this.getNameString();
+    return text;
+  }
 }
 
 class DiceExpression extends DiceFunction {
   diceCount: number;
   dieSize: number;
+  values: number[] = [];
 
   constructor(diceCount: number, dieSize: number, positive: boolean = true, name: string = null) {
     super(FunctionType.DICE, positive, name);
@@ -90,15 +161,46 @@ class DiceExpression extends DiceFunction {
     this.dieSize = dieSize;
   }
 
+  process(random: RandomProvider) {
+    if(this.diceCount === 1) {
+      this.value = random.getRandomWithMin(1, this.dieSize);
+    }
+    else {
+      for(let i = 0; i < this.diceCount; i++) {
+        let val = random.getRandomWithMin(1, this.dieSize);
+        this.values.push(val);
+      }
+      this.value = this.processTotal(this.values, this.parent.type);
+    }
+    if(!this.positive) {
+      this.value = -this.value;
+    }
+  }
+
   toString(first: boolean): string {
     let text = this.getSignString(!first);
     text += this.diceCount + 'd' + this.dieSize + this.getNameString();
     return text;
   }
+
+  toResultString(): string {
+    let text = '**' + this.value + '**' + this.getNameString();
+    if(!this.values || this.values.length === 0) {
+      return text;
+    }
+    text += ' (';
+    for(let i = 0; i < this.values.length; i++) {
+      if(i !== 0) {
+        text += ', ';
+      }
+      text += Number(this.values[i]);
+    }
+    text += ')';
+    return text;
+  }
 }
 
 class Absolute extends DiceFunction {
-  value: number;
 
   constructor(value: number, positive: boolean = true, name: string = null) {
     super(FunctionType.ABSOLUTE, positive, name);
@@ -106,8 +208,18 @@ class Absolute extends DiceFunction {
     this.value = value;
   }
 
+  process(random: RandomProvider) {
+    if(!this.positive) {
+      this.value = -this.value;
+    }
+  }
+
   toString(first: boolean): string {
     return this.getSignString(!first) + String(this.value) + this.getNameString();
+  }
+
+  toResultString(): string {
+    return '**' + this.value + '**' + this.getNameString();
   }
 }
 
@@ -131,7 +243,7 @@ function parse(expression: string, type: FunctionType = FunctionType.ADD): DiceF
   }
 
 
-  const expressionMatcher = /(([\+\-])?\s*(min|max)(\(.*\)))([^\+\-]*)|([\+\-]?((?!min|max)[^\+\-\(\)])+)/g;
+  const expressionMatcher = /(([\+\-,])?\s*(min|max)(\(.*\)))([^\+\-,]*)|([\+\-,]?((?!min|max)[^\+\-\(\),])+)/g;
   let matches;
   while((matches = expressionMatcher.exec(expression)) !== null) {
     if(matches[1]) {
