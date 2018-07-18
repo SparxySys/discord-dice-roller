@@ -31,11 +31,11 @@ client.on('message', msg => {
 client.login(token);
 
 function executeCommand(command): string {
-  if(command.startsWith('roll ')) {
-    return executeExpression(command.substr(4, command.length - 4));
+  if(command.startsWith('rollcode')) {
+    return '```\n' + executeExpression(command.substr(8, command.length - 8)) + '\n```';
   }
-  else if(command.startsWith('rollcode ')) {
-    return '`' + executeExpression(command.substr(8, command.length - 8)) + '`';
+  else if(command.startsWith('roll')) {
+    return executeExpression(command.substr(4, command.length - 4));
   }
   else {
     return 'Unknown command: ' + command;
