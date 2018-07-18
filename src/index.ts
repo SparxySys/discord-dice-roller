@@ -47,7 +47,7 @@ function executeExpression(expression: string): string {
     let parsed: Dice = parser.parse(expression);
     let inputParsed = parsed.getChildrenString();
     parsed.process(new DefaultRandomProvider());
-    let output = parsed.toResultString().trim().replace(/\s+/g, '    ');
+    let output = parsed.toResultString('    ').trim();
     return inputParsed + '\n' + output;
   }
   catch(err) {

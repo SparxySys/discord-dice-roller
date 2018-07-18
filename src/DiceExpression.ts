@@ -17,7 +17,7 @@ enum FunctionType {
 export interface Dice {
   toString(first: boolean): string;
   getChildrenString(): string;
-  toResultString(): string;
+  toResultString(whitespace: string): string;
   process(random: RandomProvider);
 }
 
@@ -100,9 +100,9 @@ class DiceFunction implements Dice {
     return ' - ';
   }
 
-  getNameString(): string {
+  getNameString(whitespace: string = ' '): string {
     if(this.name) {
-      return ' ' + this.name;
+      return whitespace + this.name;
     }
     return '';
   }
@@ -133,17 +133,17 @@ class DiceFunction implements Dice {
     return text;
   }
 
-  toResultString(): string {
+  toResultString(whitespace: string): string {
     let includePositive = Boolean(this.parent);
     let text = '**' + String(this.value) + '**';
-    text += ' (';
+    text += whitespace + '(';
     let first = true;
     this.children.forEach(child => {
       if(!first) {
-        text += ', ';
+        text += ',' + whitespace;
       }
       first = false;
-      text += child.toResultString();
+      text += child.toResultString(whitespace);
     });
     text += ')' + this.getNameString();
     return text;
@@ -183,15 +183,15 @@ class DiceExpression extends DiceFunction {
     return text;
   }
 
-  toResultString(): string {
+  toResultString(whitespace: string): string {
     let text = '**' + this.value + '**' + this.getNameString();
     if(!this.values || this.values.length === 0) {
       return text;
     }
-    text += ' (';
+    text += whitespace + '(';
     for(let i = 0; i < this.values.length; i++) {
       if(i !== 0) {
-        text += ', ';
+        text += ',' + whitespace;
       }
       text += Number(this.values[i]);
     }
