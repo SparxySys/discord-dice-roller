@@ -57,7 +57,7 @@ for(let i = 0; i < results.length; i++) {
   console.log(i + ": " + results[i]);
 }*/
 
-console.log(executeExpression(''));
+/*console.log(executeExpression(''));
 console.log(executeExpression('3d8 cold + 1d6 bludgeoning dmg+3d4 piercing-1 STR mod'));
 console.log(executeExpression('3d10-7+d4'));
 console.log(executeExpression('3d10 stuff name-7 some modifier+d4 guidance'));
@@ -66,4 +66,4 @@ console.log(executeExpression('max(2d20)+7'));
 console.log(executeExpression('3d10 stuff name-7 some modifier-d6 some debuff+d4 guidance + max(2d20) advantage'));
 console.log(executeExpression('3d10 stuff name-7 some modifier-d6 some debuff+d4 guidance + max(2d20 + 3d10) advantage'));
 console.log(executeExpression('3d10 stuff name-7 some modifier-d6 some debuff+d4 guidance'));
-console.log(executeExpression('d20 - min(2d20) + 15'));
+console.log(executeExpression('d20 - min(2d20) + 15'));*/
