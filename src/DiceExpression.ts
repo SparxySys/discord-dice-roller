@@ -134,8 +134,8 @@ class DiceFunction implements Dice {
   }
 
   toResultString(whitespace: string): string {
-    let includePositive = Boolean(this.parent);
     let text = '**' + String(this.value) + '**';
+    text += this.getNameString();
     text += whitespace + '(';
     let first = true;
     this.children.forEach(child => {
@@ -145,7 +145,7 @@ class DiceFunction implements Dice {
       first = false;
       text += child.toResultString(whitespace);
     });
-    text += ')' + this.getNameString();
+    text += ')';
     return text;
   }
 }
