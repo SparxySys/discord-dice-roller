@@ -1,11 +1,5 @@
 import { RandomProvider } from "./random";
 
-module.exports = {
-  parse: function(expression: string, type: FunctionType = FunctionType.ADD): Dice {
-    return parse(expression, type);
-  }
-}
-
 enum FunctionType {
   ABSOLUTE,
   DICE,
@@ -21,7 +15,7 @@ export interface Dice {
   process(random: RandomProvider);
 }
 
-class DiceFunction implements Dice {
+export class DiceFunction implements Dice {
   name: string;
   type: FunctionType;
   positive: boolean;
@@ -29,7 +23,7 @@ class DiceFunction implements Dice {
   parent: DiceFunction;
   value: number;
 
-  constructor(type: FunctionType, positive: boolean, name: string = null) {
+  public constructor(type: FunctionType, positive: boolean, name: string = null) {
     this.type = type;
     this.name = name;
     this.positive = positive;
@@ -150,12 +144,12 @@ class DiceFunction implements Dice {
   }
 }
 
-class DiceExpression extends DiceFunction {
+export class DiceExpression extends DiceFunction {
   diceCount: number;
   dieSize: number;
   values: number[] = [];
 
-  constructor(diceCount: number, dieSize: number, positive: boolean = true, name: string = null) {
+  public constructor(diceCount: number, dieSize: number, positive: boolean = true, name: string = null) {
     super(FunctionType.DICE, positive, name);
     this.diceCount = diceCount;
     this.dieSize = dieSize;
@@ -200,7 +194,7 @@ class DiceExpression extends DiceFunction {
   }
 }
 
-class Absolute extends DiceFunction {
+export class Absolute extends DiceFunction {
 
   constructor(value: number, positive: boolean = true, name: string = null) {
     super(FunctionType.ABSOLUTE, positive, name);
@@ -233,7 +227,7 @@ function isPositive(symbol: string) {
   return true;
 }
 
-function parse(expression: string, type: FunctionType = FunctionType.ADD): DiceFunction {
+export function parse(expression: string, type: FunctionType = FunctionType.ADD): DiceFunction {
   expression = expression.trim();
   let collection: DiceFunction = new DiceFunction(type, true);
 

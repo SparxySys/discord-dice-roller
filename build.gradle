@@ -33,7 +33,11 @@ node {
 
 def isWindowsOs = Os.isFamily(Os.FAMILY_WINDOWS)
 
-task build(type: XzCompressionTask, dependsOn: 'packageDist') {
+task build(dependsOn: ['packageArtifact', 'runTests']) {
+
+}
+
+task packageArtifact(type: XzCompressionTask, dependsOn: 'packageDist') {
   group = 'Packaging'
   description = 'Build from sources and output to compressed artifact'
 
@@ -62,12 +66,13 @@ task createPackageDir(type: Copy, dependsOn: ['npmInstall', 'compileTypescript']
   into "${project.projectDir}/dist"
 }
 
-task compileTypescript(type: Exec, dependsOn: 'npmInstall') {
-  if(isWindowsOs) {
-		commandLine 'cmd', '/c', './node_modules/typescript/bin/tsc'
-	} else {
-		commandLine './node_modules/typescript/bin/tsc'
-	}
+task compileTypescript(type: NpmTask) {
+  args = ['run-script', 'build']
+}
+
+task runTests(type: NpmTask) {
+  args = ['test']
+  ignoreExitValue = true
 }
 
 task createDir(dependsOn: 'clean') {

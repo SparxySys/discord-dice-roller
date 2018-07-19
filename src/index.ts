@@ -1,5 +1,5 @@
-import { Dice } from "./DiceExpression";
-import { DefaultRandomProvider } from "./random";
+import { Dice, parse } from './DiceExpression';
+import { DefaultRandomProvider } from './random';
 
 const fs = require('fs');
 const ini = require('ini');
@@ -44,7 +44,7 @@ function executeCommand(command): string {
 
 function executeExpression(expression: string): string {
   try {
-    let parsed: Dice = parser.parse(expression);
+    let parsed: Dice = parse(expression);
     let inputParsed = parsed.getChildrenString();
     parsed.process(new DefaultRandomProvider());
     let output = parsed.toResultString('    ').trim();
