@@ -9,13 +9,13 @@
   "scripts": {
     "start": "ts-node src/index.ts",
     "build": "tsc",
-    "test": "nyc mocha --full-trace --bail --recursive src/**/*.spec.ts"
+    "test": "nyc mocha --full-trace --recursive src/**/*.spec.ts"
   },
   "nyc": {
-    "lines": 99,
-    "statements": 99,
-    "functions": 99,
-    "branches": 99,
+    "lines": 95,
+    "statements": 95,
+    "functions": 95,
+    "branches": 90,
     "include": [
       "src/**/*.ts"
     ],
@@ -31,7 +31,8 @@
     ],
     "sourceMap": true,
     "instrument": true,
-    "check-coverage": true
+    "check-coverage": true,
+    "produce-source-map": true
   },
   "author": "Christina Lena Korosec <christina.korosec@ds003.info>",
   "license": "MIT",

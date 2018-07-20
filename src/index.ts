@@ -51,30 +51,7 @@ function executeExpression(expression: string): string {
     return inputParsed + '\n' + output;
   }
   catch(err) {
-    return 'Sorry, I failed to process your request due to an error.\n' + err;
+    const errorMessage = err.message;
+    return 'Sorry, I failed to process your request due to an error.\n' + errorMessage;
   }
 }
-
-/*let results = [];
-for(let i = 0; i < 1000; i++) {
-  let rand = getRandom(1, 20);
-  if(typeof results[rand] === 'undefined') {
-    results[rand] = 0;
-  }
-  results[rand] = results[rand] + 1;
-}
-
-for(let i = 0; i < results.length; i++) {
-  console.log(i + ": " + results[i]);
-}*/
-
-/*console.log(executeExpression('') + '\n');
-console.log(executeExpression('3d8 cold + 1d6 bludgeoning dmg+3d4 piercing-1 STR mod') + '\n');
-console.log(executeExpression('3d10-7+d4') + '\n');
-console.log(executeExpression('3d10 stuff name-7 some modifier+d4 guidance') + '\n');
-console.log(executeExpression('min(2d20)+7') + '\n');
-console.log(executeExpression('max(2d20)+7') + '\n');
-console.log(executeExpression('3d10 stuff name-7 some modifier-d6 some debuff+d4 guidance + max(2d20) advantage') + '\n');
-console.log(executeExpression('3d10 stuff name-7 some modifier-d6 some debuff+d4 guidance + max(2d20, 3d10) advantage') + '\n');
-console.log(executeExpression('3d10 stuff name-7 some modifier-d6 some debuff+d4 guidance') + '\n');
-console.log(executeExpression('d20 - min(2d20) + 15') + '\n');*/

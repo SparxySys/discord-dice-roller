@@ -1,6 +1,6 @@
 import { RandomProvider } from "./random";
 
-enum FunctionType {
+export enum FunctionType {
   ABSOLUTE,
   DICE,
   ADD,
@@ -19,7 +19,7 @@ export class DiceFunction implements Dice {
   name: string;
   type: FunctionType;
   positive: boolean;
-  private children: DiceFunction[] = [];
+  children: DiceFunction[] = [];
   parent: DiceFunction;
   value: number;
 
@@ -217,12 +217,12 @@ export class Absolute extends DiceFunction {
   }
 }
 
-function isPositive(symbol: string) {
+export function isPositive(symbol: string) {
   if(symbol === '-') {
     return false;
   }
   else if(symbol !== '+' && symbol !== '') {
-    throw `Invalid symbol`
+    throw new Error(`Invalid symbol`);
   }
   return true;
 }
@@ -237,7 +237,7 @@ export function parse(expression: string, type: FunctionType = FunctionType.ADD)
   }
 
 
-  const expressionMatcher = /(([\+\-,])?\s*(min|max)(\(.*\)))([^\+\-,]*)|([\+\-,]?((?!min|max)[^\+\-\(\),])+)/g;
+  const expressionMatcher = /(([\+\-,])?\s*(min|max|add)(\(.*\)))([^\+\-,]*)|([\+\-,]?((?!min|max|add)[^\+\-\(\),])+)/g;
   let matches;
   while((matches = expressionMatcher.exec(expression)) !== null) {
     if(matches[1]) {
@@ -256,8 +256,8 @@ export function parse(expression: string, type: FunctionType = FunctionType.ADD)
       else if(matches[3] === 'max') {
         type = FunctionType.MAX;
       }
-      else {
-        throw `Invalid function [${matches[1]}]`;
+      else if(matches[3] === '' || matches[3] === 'add') {
+        type = FunctionType.ADD;
       }
 
       let subExpression = matches[4].substr(1, matches[4].length - 2);
@@ -277,7 +277,7 @@ export function parse(expression: string, type: FunctionType = FunctionType.ADD)
       let positive: boolean = isPositive(symbol);
 
       if(!current[2] && !current[3]) {
-        throw `Invalid expression [${current[0]}]`
+        throw new Error(`Invalid expression [${current[0]}]`);
       }
 
       let name = '';
@@ -286,16 +286,9 @@ export function parse(expression: string, type: FunctionType = FunctionType.ADD)
       }
 
       if(current[2] && !current[3]) {
-        if(isNaN(Number(current[2]))) {
-          throw `Invalid absolute number on [${current[0]}]`
-        }
         collection.addChild(new Absolute(Number(current[2]), positive, name));
       }
       else {
-        if(isNaN(Number(current[3]))) {
-          throw `Invalid die size on [${current[0]}]`
-        }
-
         let diceCount = 1;
         if(current[2]) {
           if(!isNaN(Number(current[2]))) {
@@ -306,10 +299,10 @@ export function parse(expression: string, type: FunctionType = FunctionType.ADD)
         let dieSize = Number(current[3]);
 
         if(dieSize < 2 || dieSize >= 1000000) {
-          throw `Invalid die size [${current[0]}]`;
+          throw new Error(`Invalid die size [${current[0]}]`);
         }
         if(diceCount < 1 || diceCount > 200) {
-          throw `Invalid dice count [${current[0]}]`;
+          throw new Error(`Invalid dice count [${current[0]}]`);
         }
 
         collection.addChild(new DiceExpression(diceCount, dieSize, positive, name));
