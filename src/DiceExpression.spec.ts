@@ -128,6 +128,14 @@ describe('DiceFunction', () => {
         func.process(provider);
         expect(func.value).to.equal(-10);
     });
+
+    it('invalid DiceFunction type', () => {
+        const parseErr = () => {
+            const func = new DiceFunction(FunctionType.DICE, true);
+            func.process(provider);
+        };
+        expect(parseErr).to.throw(Error, /Unimplemented function type/);
+    });
 });
 
 describe('Absolute', () => {
@@ -332,22 +340,22 @@ const variousExpressions = [
     {
         "input": "",
         "parsed": "1d20",
-        "result": "**11** (**11**)"
+        "result": "**11**"
     },
     {
         "input": "d20",
         "parsed": "1d20",
-        "result": "**11** (**11**)"
+        "result": "**11**"
     },
     {
         "input": "1d20",
         "parsed": "1d20",
-        "result": "**11** (**11**)"
+        "result": "**11**"
     },
     {
         "input": "+1d20",
         "parsed": "1d20",
-        "result": "**11** (**11**)"
+        "result": "**11**"
     },
     {
         "input": "3d8 cold + 1d6 bludgeoning dmg+3d4 piercing-1 STR mod",
@@ -367,27 +375,32 @@ const variousExpressions = [
     {
         "input": "min(2d20)+7",
         "parsed": "min(2d20) + 7",
-        "result": "**18** (**11** (**11** (11, 11)), **7**)"
+        "result": "**18** (**11** (11, 11), **7**)"
     },
     {
         "input": "max(2d20)+7",
         "parsed": "max(2d20) + 7",
-        "result": "**18** (**11** (**11** (11, 11)), **7**)"
+        "result": "**18** (**11** (11, 11), **7**)"
     },
     {
         "input": "add(2d20)+7",
         "parsed": "(2d20) + 7",
-        "result": "**29** (**22** (**22** (11, 11)), **7**)"
+        "result": "**29** (**22** (11, 11), **7**)"
     },
     {
         "input": "d20-max(2d20)",
         "parsed": "1d20 - max(2d20)",
-        "result": "**0** (**11**, **-11** (**11** (11, 11)))"
+        "result": "**0** (**11**, **-11** (11, 11))"
     },
     {
         "input": "d20+max(2d20)",
         "parsed": "1d20 + max(2d20)",
-        "result": "**22** (**11**, **11** (**11** (11, 11)))"
+        "result": "**22** (**11**, **11** (11, 11))"
+    },
+    {
+        "input": "1d20 + min()",
+        "parsed": "1d20",
+        "result": "**11**"
     }
     /*,
     {

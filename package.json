@@ -12,10 +12,10 @@
     "test": "nyc mocha --full-trace --recursive src/**/*.spec.ts"
   },
   "nyc": {
-    "lines": 95,
-    "statements": 95,
-    "functions": 95,
-    "branches": 90,
+    "lines": 97,
+    "statements": 97,
+    "functions": 97,
+    "branches": 97,
     "include": [
       "src/**/*.ts"
     ],
@@ -29,10 +29,14 @@
       "ts-node/register",
       "source-map-support/register"
     ],
+    "reporter": [
+      "html",
+      "text",
+      "text-summary"
+    ],
     "sourceMap": true,
     "instrument": true,
-    "check-coverage": true,
-    "produce-source-map": true
+    "check-coverage": true
   },
   "author": "Christina Lena Korosec <christina.korosec@ds003.info>",
   "license": "MIT",

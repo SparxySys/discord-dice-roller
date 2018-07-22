@@ -58,6 +58,9 @@ export class DiceFunction implements Dice {
         val = Math.max(val, numbers[i]);
       }
     }
+    else {
+      throw new Error('Unimplemented function type ' + this.getFunctionTypeString());
+    }
     return val;
   }
 
@@ -68,6 +71,7 @@ export class DiceFunction implements Dice {
       numbers.push(this.children[i].value);
     }
     this.value = this.processTotal(numbers, this.type);
+
     if(!this.positive) {
       this.value = -this.value;
     }
@@ -128,6 +132,9 @@ export class DiceFunction implements Dice {
   }
 
   toResultString(whitespace: string): string {
+    if(this.children.length < 2) {
+      return this.children[0].toResultString(whitespace);
+    }
     let text = '**' + String(this.value) + '**';
     text += this.getNameString();
     text += whitespace + '(';
@@ -178,7 +185,11 @@ export class DiceExpression extends DiceFunction {
   }
 
   toResultString(whitespace: string): string {
-    let text = '**' + this.value + '**' + this.getNameString();
+    let signToInclude = '';
+    if(this.parent && this.parent.children.length === 1) {
+      signToInclude = this.parent.getSignString(false).trim();
+    }
+    let text = '**' + signToInclude + this.value + '**' + this.getNameString();
     if(!this.values || this.values.length === 0) {
       return text;
     }
@@ -228,14 +239,18 @@ export function isPositive(symbol: string) {
 }
 
 export function parse(expression: string, type: FunctionType = FunctionType.ADD): DiceFunction {
-  expression = expression.trim();
-  let collection: DiceFunction = new DiceFunction(type, true);
-
   if(expression.length === 0) {
+    let collection: DiceFunction = new DiceFunction(type, true);
     collection.addChild(new DiceExpression(1, 20));
     return collection;
   }
 
+  return parseInternal(expression, type);
+}
+
+export function parseInternal(expression: string, type: FunctionType): DiceFunction {
+  expression = expression.trim();
+  let collection: DiceFunction = new DiceFunction(type, true);
 
   const expressionMatcher = /(([\+\-,])?\s*(min|max|add)(\(.*\)))([^\+\-,]*)|([\+\-,]?((?!min|max|add)[^\+\-\(\),])+)/g;
   let matches;
@@ -256,57 +271,52 @@ export function parse(expression: string, type: FunctionType = FunctionType.ADD)
       else if(matches[3] === 'max') {
         type = FunctionType.MAX;
       }
-      else if(matches[3] === '' || matches[3] === 'add') {
+      else {
         type = FunctionType.ADD;
       }
 
       let subExpression = matches[4].substr(1, matches[4].length - 2);
-      let child = parse(subExpression, type);
+      let child = parseInternal(subExpression, type);
+      if(child.children.length === 0) {
+        continue;
+      }
       child.name = matches[5].trim();
       child.positive = positive;
       collection.addChild(child);
       continue;
     }
 
-    if(!matches[6] || !matches[6].trim()) continue;
-
     const expressionContentMatcher = /[^0-9\+\-d]*([\+\-]?)\s*(\d*)d?(\d*)\s*(.*)/;
-    let current;
-    if((current = expressionContentMatcher.exec(matches[6])) !== null) {
-      let symbol = current[1];
-      let positive: boolean = isPositive(symbol);
+    let current = expressionContentMatcher.exec(matches[6]);
 
-      if(!current[2] && !current[3]) {
-        throw new Error(`Invalid expression [${current[0]}]`);
+    let symbol = current[1];
+    let positive: boolean = isPositive(symbol);
+
+    if(!current[2] && !current[3]) {
+      throw new Error(`Invalid expression [${current[0]}]`);
+    }
+
+    let name = current[4].trim();
+
+    if(current[2] && !current[3]) {
+      collection.addChild(new Absolute(Number(current[2]), positive, name));
+    }
+    else {
+      let diceCount = 1;
+      if(current[2]) {
+        diceCount = Number(current[2]);
       }
 
-      let name = '';
-      if(typeof current[4] !== 'undefined') {
-        name = current[4].trim();
+      let dieSize = Number(current[3]);
+
+      if(dieSize < 2 || dieSize >= 1000000) {
+        throw new Error(`Invalid die size [${current[0]}]`);
+      }
+      if(diceCount < 1 || diceCount > 200) {
+        throw new Error(`Invalid dice count [${current[0]}]`);
       }
 
-      if(current[2] && !current[3]) {
-        collection.addChild(new Absolute(Number(current[2]), positive, name));
-      }
-      else {
-        let diceCount = 1;
-        if(current[2]) {
-          if(!isNaN(Number(current[2]))) {
-            diceCount = Number(current[2]);
-          }
-        }
-
-        let dieSize = Number(current[3]);
-
-        if(dieSize < 2 || dieSize >= 1000000) {
-          throw new Error(`Invalid die size [${current[0]}]`);
-        }
-        if(diceCount < 1 || diceCount > 200) {
-          throw new Error(`Invalid dice count [${current[0]}]`);
-        }
-
-        collection.addChild(new DiceExpression(diceCount, dieSize, positive, name));
-      }
+      collection.addChild(new DiceExpression(diceCount, dieSize, positive, name));
     }
   }
   return collection;
